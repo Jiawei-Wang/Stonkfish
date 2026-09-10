@@ -1,0 +1,2 @@
+# Stonkfish
+Stockfish but dumber
