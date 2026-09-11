@@ -1,0 +1,27 @@
+# Python bytecode & virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+
+# Binaries & Engine Executables
+bin/
+*.exe
+*.bin
+*.so
+*.dll
+*.dylib
+
+# Trained NNUE models & datasets
+data/
+*.pt
+*.onnx
+*.nnue
+
+# IDE & OS specific
+.vscode/
+.idea/
+.DS_Store
+*.swp
