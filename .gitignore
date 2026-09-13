@@ -25,3 +25,6 @@ data/
 .idea/
 .DS_Store
 *.swp
+
+# pytest
+.pytest_cache/
