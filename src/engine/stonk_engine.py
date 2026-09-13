@@ -13,6 +13,13 @@ class StonkEngine:
             binary_path = os.path.join(base_dir, "..", "..", "bin", "stockfish")
 
         self.path = binary_path
+
+        if not os.path.isfile(binary_path):
+            raise FileNotFoundError(
+                f"Stockfish binary not found at {binary_path}. "
+                "Place it at bin/stockfish or add stockfish to your PATH."
+             )
+
         self.engine = chess.engine.SimpleEngine.popen_uci(self.path)
 
     def configure_elo(self, elo: int):

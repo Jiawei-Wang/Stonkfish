@@ -19,7 +19,12 @@ def _binary_available() -> bool:
     return bool(_BINARIES)
 
 
-pytestmark = pytest.mark.skipif(
+def test_missing_binary_raises_file_not_found():
+    with pytest.raises(FileNotFoundError):
+        StonkEngine(binary_path="/nonexistent/stockfish_xyz")
+
+
+_SKIP_NO_BINARY = pytest.mark.skipif(
     not _binary_available(),
     reason="Stockfish binary (bin/stockfish or stockfish on PATH) is not present",
 )
@@ -27,6 +32,7 @@ pytestmark = pytest.mark.skipif(
 _MATED = "rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 1 3"
 
 
+@_SKIP_NO_BINARY
 def test_default_binary_path_resolves():
     engine = StonkEngine()
     try:
@@ -35,6 +41,7 @@ def test_default_binary_path_resolves():
         engine.quit()
 
 
+@_SKIP_NO_BINARY
 def test_configure_elo_does_not_raise():
     engine = StonkEngine()
     try:
@@ -43,6 +50,7 @@ def test_configure_elo_does_not_raise():
         engine.quit()
 
 
+@_SKIP_NO_BINARY
 def test_get_best_move_returns_chess_move():
     engine = StonkEngine()
     try:
@@ -52,6 +60,7 @@ def test_get_best_move_returns_chess_move():
         engine.quit()
 
 
+@_SKIP_NO_BINARY
 def test_get_best_move_raises_when_no_legal_moves():
     engine = StonkEngine()
     try:
@@ -59,3 +68,6 @@ def test_get_best_move_raises_when_no_legal_moves():
             engine.get_best_move(chess.Board(_MATED), time_limit=0.3)
     finally:
         engine.quit()
+
+
+
