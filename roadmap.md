@@ -11,7 +11,7 @@
 ---
 
 ### Phase 2: Terminal UI (TUI) & Controls
-* **Interactive TUI Layout:** Use a Python library like `Textual` or `Blessed` to create a terminal UI with a visual board grid, move history panel, and current game evaluation meter.
+* **Interactive TUI Layout:** Use a Python library like `Textual` to create a terminal UI with a visual board grid, move history panel, and current game evaluation meter.
 * **Keyboard Navigation:** Add arrow key or `WASD` navigation to move a selector highlight across the board squares, using `Space`/`Enter` to pick up and drop pieces.
 * **Mouse Support:** Add clickable board squares and drag-and-drop support using terminal mouse event tracking.
 

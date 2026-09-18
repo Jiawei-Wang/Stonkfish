@@ -18,7 +18,7 @@ class StonkEngine:
             raise FileNotFoundError(
                 f"Stockfish binary not found at {binary_path}. "
                 "Place it at bin/stockfish or add stockfish to your PATH."
-             )
+            )
 
         self.engine = chess.engine.SimpleEngine.popen_uci(self.path)
 
