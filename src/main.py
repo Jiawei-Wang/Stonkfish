@@ -1,12 +1,30 @@
+"""Command-line entry point for the Stonkfish chess app.
+
+Wires together the Stockfish engine, the game state, and the board
+renderer to run an interactive CLI match. The player picks an Elo rating
+and a color, then plays against the engine by entering moves in Standard
+Algebraic Notation (SAN).
+"""
+
 import chess
 from core.game import Game
 from engine.stonk_engine import StonkEngine
 from ui.board_renderer import render_board
 
+
 def setup_game():
+    """Collect the player's match preferences from the terminal.
+
+    Prompts for a Stockfish Elo rating (clamped to the supported range)
+    and the color the player wants to play.
+
+    Returns:
+        tuple[int, chess.Color]: The chosen Elo rating and the player's
+        side to play.
+    """
     print("=== Welcome to Stonkfish CLI ===")
-    
-    # Configure Elo
+
+    # Prompt until the player supplies a valid Elo within the supported range.
     while True:
         try:
             elo_input = input("Select Stockfish Elo (1320 - 2800) [Default 1500]: ").strip()
@@ -17,7 +35,7 @@ def setup_game():
         except ValueError:
             print("Invalid number format.")
 
-    # Configure Side
+    # Map the color choice to a chess.Color; anything but 'b' defaults to White.
     side_choice = input("Play as White or Black? (w/b) [Default w]: ").strip().lower()
     player_color = chess.BLACK if side_choice == 'b' else chess.WHITE
 
@@ -25,7 +43,12 @@ def setup_game():
 
 
 def main():
-    """entry point of app"""
+    """Run the interactive CLI game loop.
+
+    Initializes the engine, gathers the player's settings, and alternates
+    between the player's moves and the engine's responses until the game
+    ends or the player quits. Always shuts the engine down on exit.
+    """
     try:
         engine = StonkEngine()
     except FileNotFoundError as e:
@@ -34,6 +57,7 @@ def main():
 
     game = None
     player_color = None
+    # Tracks whether setup completed, so the final board is only shown for a real game.
     entered_game = False
     try:
         elo, player_color = setup_game()
@@ -44,7 +68,7 @@ def main():
         print("\nGame starting! Enter moves using Standard Algebraic Notation (e.g., e4, Nf3, O-O).\n")
 
         while not game.is_over():
-            # Display board from player perspective
+            # Render the board from the player's perspective.
             print(render_board(game.board, invert=(player_color == chess.BLACK)))
 
             if game.board.turn == player_color:
