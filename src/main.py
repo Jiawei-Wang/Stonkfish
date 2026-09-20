@@ -6,13 +6,34 @@ and a color, then plays against the engine by entering moves in Standard
 Algebraic Notation (SAN).
 """
 
+import sys
 import chess
 from core.game import Game
 from engine.stonk_engine import StonkEngine
 from cli_ui.board_renderer import render_board
+from tui_ui.app import StonkfishTUI
 
 
-def setup_game():
+def select_mode() -> str:
+    """prompt the user to select a mode (Cli or Tui)
+    
+    returns:
+        str: '1' for Cli and '2' for Tui
+    """
+    print("=== Welcome to Stonkfish Chess ===")
+    print("1) Play in CLI Mode")
+    print("2) Play in TUI Mode (Textual)")
+
+    while True:
+        choice = input("\nSelect mode (1/2) [Default 2]: ").strip()
+        if not choice or choice == "2":
+            return "2"
+        if choice == "1":
+            return "1"
+        print("Invalid option. Please enter 1 or 2.")
+
+
+def setup_cli_game():
     """Collect the player's match preferences from the terminal.
 
     Prompts for a Stockfish Elo rating (clamped to the supported range)
@@ -42,7 +63,7 @@ def setup_game():
     return elo, player_color
 
 
-def main():
+def run_cli_mode():
     """Run the interactive CLI game loop.
 
     Initializes the engine, gathers the player's settings, and alternates
@@ -60,7 +81,7 @@ def main():
     # Tracks whether setup completed, so the final board is only shown for a real game.
     entered_game = False
     try:
-        elo, player_color = setup_game()
+        elo, player_color = setup_cli_game()
         engine.configure_elo(elo)
         game = Game()
         entered_game = True
@@ -95,6 +116,24 @@ def main():
         print("\n" + render_board(game.board, invert=(player_color == chess.BLACK)))
         if game.is_over():
             print(f"\nGame Over! Result: {game.get_result()}")
+
+
+def run_tui_mode():
+    """Run the interactive TUI game loop."""
+    app = StonkfishTUI()
+    app.run()
+
+
+def main():
+    try:
+        mode = select_mode()
+        if mode == "1":
+            run_cli_mode()
+        elif mode == "2":
+            run_tui_mode()
+    except KeyboardInterrupt:
+        print("\nInterrupted. Quitting...")
+        sys.exit(0)
 
 
 if __name__ == "__main__":
