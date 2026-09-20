@@ -1,6 +1,6 @@
 # Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International
 
-Copyright (c) 2026 [Your Name or Username]
+Copyright (c) 2026 Jiawei Wang
 
 This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License.
 

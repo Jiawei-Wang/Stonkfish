@@ -25,6 +25,7 @@ def setup_game():
 
 
 def main():
+    """entry point of app"""
     try:
         engine = StonkEngine()
     except FileNotFoundError as e:
