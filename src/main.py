@@ -9,7 +9,7 @@ Algebraic Notation (SAN).
 import chess
 from core.game import Game
 from engine.stonk_engine import StonkEngine
-from ui.board_renderer import render_board
+from cli_ui.board_renderer import render_board
 
 
 def setup_game():

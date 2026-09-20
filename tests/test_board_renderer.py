@@ -1,6 +1,6 @@
 import chess
 
-from ui.board_renderer import UNICODE_PIECES, render_board
+from cli_ui.board_renderer import UNICODE_PIECES, render_board
 
 
 def test_initial_board_shape_and_headers():
