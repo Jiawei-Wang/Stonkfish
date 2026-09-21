@@ -7,6 +7,7 @@ Algebraic Notation (SAN).
 """
 
 import sys
+import os
 import chess
 from core.game import Game
 from engine.stonk_engine import StonkEngine
@@ -15,22 +16,31 @@ from tui_ui.app import StonkfishTUI
 
 
 def select_mode() -> str:
-    """prompt the user to select a mode (Cli or Tui)
+    """Prompt the user to select a mode (CLI or TUI).
     
-    returns:
-        str: '1' for Cli and '2' for Tui
+    Returns:
+        str: '1' for CLI and '2' for TUI
     """
-    print("=== Welcome to Stonkfish Chess ===")
+    print("\n=== Welcome to Stonkfish Chess ===")
     print("1) Play in CLI Mode")
     print("2) Play in TUI Mode (Textual)")
+    print("3) Exit")
 
     while True:
-        choice = input("\nSelect mode (1/2) [Default 2]: ").strip()
-        if not choice or choice == "2":
-            return "2"
-        if choice == "1":
-            return "1"
-        print("Invalid option. Please enter 1 or 2.")
+        try:
+            choice = input("\nSelect mode (1/2/3) [Default 2]: ").strip()
+            if not choice or choice == "2":
+                return "2"
+            if choice == "1":
+                return "1"
+            if choice == "3" or choice.lower() in ["q", "quit", "exit"]:
+                print("Goodbye!")
+                os._exit(0)  # Force immediate process termination
+            print("Invalid option. Please enter 1, 2, or 3.")
+        except EOFError:
+            # Re-open standard input if Textual altered stdin state
+            sys.stdin = open(0, "r", os.O_RDONLY)
+            print()
 
 
 def setup_cli_game():
@@ -103,8 +113,8 @@ def run_cli_mode():
                     continue
             else:
                 print("\nStonkfish is thinking...")
-                engine_move = engine.get_best_move(game.board, time_limit=0.5)
-                played_san = game.make_engine_move(engine_move)
+                engine_move = engine.get_best_move_and_eval(game.board, time_limit=0.5)
+                played_san = game.make_engine_move(engine_move[0])
                 print(f"Stonkfish played: {played_san}")
 
     except KeyboardInterrupt:
@@ -125,15 +135,16 @@ def run_tui_mode():
 
 
 def main():
-    try:
-        mode = select_mode()
-        if mode == "1":
-            run_cli_mode()
-        elif mode == "2":
-            run_tui_mode()
-    except KeyboardInterrupt:
-        print("\nInterrupted. Quitting...")
-        sys.exit(0)
+    while True:
+        try:
+            mode = select_mode()
+            if mode == "1":
+                run_cli_mode()
+            elif mode == "2":
+                run_tui_mode()
+        except KeyboardInterrupt:
+            print("\nInterrupted. Quitting...")
+            os._exit(0)
 
 
 if __name__ == "__main__":

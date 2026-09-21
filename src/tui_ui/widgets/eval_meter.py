@@ -2,6 +2,7 @@
 
 from textual.widget import Widget
 from textual.widgets import Static
+from textual.reactive import reactive
 
 
 class EvalMeter(Widget):
@@ -16,19 +17,17 @@ class EvalMeter(Widget):
     }
     """
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.score_text = "Eval: 0.0"
-
-    def compose(self):
-        yield Static(self.score_text, id="eval_label")
+    # Define score as a reactive property with a default value
+    score: reactive[float | str] = reactive(0.0)
 
     def update_eval(self, score: float | str) -> None:
-        """Update evaluation reading (e.g., +0.5 or '#M3')."""
-        label = self.query_one("#eval_label", Static)
-        if isinstance(score, float):
-            prefix = "+" if score > 0 else ""
-            self.score_text = f"Eval: {prefix}{score:.2f}"
-        else:
-            self.score_text = f"Eval: {score}"
-        label.update(self.score_text)
+        """Update the eval score."""
+        self.score = score  # Changing a reactive automatically triggers re-render!
+
+    def render(self) -> str:
+        # Example render using self.score
+        if isinstance(self.score, str):
+            return f"Eval: {self.score}"
+        
+        # Display formatted score (e.g., +1.50 or -0.30)
+        return f"Eval: {self.score:+.2f}"

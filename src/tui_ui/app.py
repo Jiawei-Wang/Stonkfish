@@ -1,9 +1,10 @@
-"""app.py: Full Textual Application wiring together all components."""
+"""app.py: Full Textual Application with Setup Screen and Game View."""
 
 from textual import work
 from textual.app import App, ComposeResult
 from textual.containers import Container, Horizontal, Vertical
-from textual.widgets import Header, Footer, Log, Button
+from textual.screen import ModalScreen, Screen
+from textual.widgets import Header, Footer, Log, Button, Input, RadioSet, RadioButton, Label
 import chess
 
 from core.game import Game
@@ -14,17 +15,82 @@ from tui_ui.widgets.input import MoveInputBar
 from tui_ui.widgets.move_history import MoveHistory
 
 
-class StonkfishTUI(App):
-    """The complete Stonkfish Chess Textual TUI."""
-
-    TITLE = "Stonkfish Chess"
-
-    BINDINGS = [
-        ("q", "quit", "Quit"),
-    ]
+class SetupScreen(ModalScreen):
+    """Modal screen shown on launch to configure Elo and Color."""
 
     CSS = """
-    Screen {
+    SetupScreen {
+        align: center middle;
+        background: rgba(0, 0, 0, 0.7);
+    }
+
+    #dialog {
+        padding: 1 2;
+        background: $surface;
+        border: thick $primary;
+        width: 50;
+        height: auto;
+    }
+
+    .field-title {
+        margin-top: 1;
+        text-style: bold;
+    }
+
+    #elo_input {
+        margin-bottom: 1;
+    }
+
+    #button_bar {
+        margin-top: 1;
+        align: center middle;
+    }
+
+    Button {
+        margin: 0 1;
+    }
+    """
+
+    def compose(self) -> ComposeResult:
+        with Container(id="dialog"):
+            yield Label("=== Stonkfish Game Setup ===", id="title")
+
+            yield Label("Engine Elo (1320 - 2800):", classes="field-title")
+            yield Input(value="1500", placeholder="1500", id="elo_input")
+
+            yield Label("Select Your Color:", classes="field-title")
+            with RadioSet(id="color_select"):
+                yield RadioButton("White", value=True, id="radio_white")
+                yield RadioButton("Black", id="radio_black")
+
+            with Horizontal(id="button_bar"):
+                yield Button("Start Game", id="btn_start", variant="success")
+                yield Button("Quit", id="btn_quit", variant="error")
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "btn_quit":
+            self.app.exit()
+            return
+
+        if event.button.id == "btn_start":
+            elo_val = self.query_one("#elo_input", Input).value.strip()
+            if not elo_val.isdigit() or not (1320 <= int(elo_val) <= 2800):
+                self.notify("Elo must be an integer between 1320 and 2800", severity="error")
+                return
+
+            elo = int(elo_val)
+            is_white = self.query_one("#radio_white", RadioButton).value
+            player_color = chess.WHITE if is_white else chess.BLACK
+
+            # Pass choices back to the app controller
+            self.dismiss((elo, player_color))
+
+
+class GameScreen(Screen):
+    """Main Chess Game Screen."""
+
+    CSS = """
+    GameScreen {
         layout: vertical;
     }
 
@@ -70,31 +136,27 @@ class StonkfishTUI(App):
     }
     """
 
-    def __init__(self, elo: int = 1500, player_color: chess.Color = chess.WHITE):
+    def __init__(self, elo: int, player_color: chess.Color):
         super().__init__()
-        self.game = Game()
-        self.engine = None
         self.elo = elo
         self.player_color = player_color
+        self.game = Game()
+        self.engine = None
         self.selected_square = None
 
     def compose(self) -> ComposeResult:
         yield Header()
 
-        # Split screen into main game area and bottom control bar
         with Horizontal(id="main_container"):
-            # Left pane: Eval meter & Board
             with Vertical(id="left_pane"):
                 yield EvalMeter(id="eval_meter")
                 with Container(id="board_container"):
                     yield ChessBoardGrid(invert=(self.player_color == chess.BLACK), id="board")
 
-            # Right pane: Move history & event log
             with Vertical(id="right_pane"):
                 yield MoveHistory(id="move_history")
                 yield Log(id="log")
 
-        # Bottom Bar: Input field + Mouse-clickable Quit button
         with Horizontal(id="bottom_bar"):
             yield MoveInputBar(id="input_bar")
             yield Button("Quit", id="btn_quit", variant="error")
@@ -102,46 +164,43 @@ class StonkfishTUI(App):
         yield Footer()
 
     async def on_mount(self) -> None:
-        """Initialize engine and sync initial board state."""
+        """Initialize engine and sync board state."""
         log = self.query_one(Log)
         try:
             self.engine = StonkEngine()
             self.engine.configure_elo(self.elo)
-            log.write_line(f"StonkEngine initialized (Elo: {self.elo}).")
+            log.write_line(f"StonkEngine ready (Elo: {self.elo}). Playing as {'White' if self.player_color == chess.WHITE else 'Black'}.")
         except FileNotFoundError as e:
             log.write_line(f"Engine setup failed: {e}")
 
-        # Render initial board
+        # Update board display
         board_widget = self.query_one(ChessBoardGrid)
         board_widget.update_board(self.game.board)
+
+        # If user picked Black, engine makes the first move
+        if self.player_color == chess.BLACK:
+            self.trigger_engine_turn()
 
     # --- INPUT HANDLERS ---
 
     def on_move_input_bar_move_submitted(self, message: MoveInputBar.MoveSubmitted) -> None:
-        """Handle moves typed via MoveInputBar."""
         san = message.command
         if san.lower() in ["quit", "exit"]:
-            self.exit(result="quit")
+            self.app.exit()
             return
-
         self.attempt_player_move(san)
 
     def on_chess_square_square_selected(self, message: ChessSquare.SquareSelected) -> None:
-        """Handle click-to-move via mouse selection."""
         sq = message.square_index
         board_widget = self.query_one(ChessBoardGrid)
 
         if self.selected_square is None:
-            # First click: Select source piece
             piece = self.game.board.piece_at(sq)
             if piece and piece.color == self.game.board.turn:
                 self.selected_square = sq
                 board_widget.highlight_square(sq)
         else:
-            # Second click: Attempt destination move
             move = chess.Move(self.selected_square, sq)
-
-            # Check promotion default (queen)
             piece = self.game.board.piece_at(self.selected_square)
             if piece and piece.piece_type == chess.PAWN and chess.square_rank(sq) in (0, 7):
                 move.promotion = chess.QUEEN
@@ -154,21 +213,18 @@ class StonkfishTUI(App):
             board_widget.highlight_square(None)
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
-        """Mouse click on Quit button."""
         if event.button.id == "btn_quit":
-            self.exit(result="quit")
+            self.app.exit()
 
     # --- GAME & ENGINE LOGIC ---
 
     def attempt_player_move(self, san_move: str) -> None:
-        """Validate player move and trigger engine response if valid."""
         log = self.query_one(Log)
 
         if self.game.make_player_move(san_move):
             log.write_line(f"You played: {san_move}")
             self.sync_board_and_history(san_move)
 
-            # Trigger engine turn in worker thread
             if not self.game.is_over():
                 self.trigger_engine_turn()
         else:
@@ -176,30 +232,51 @@ class StonkfishTUI(App):
 
     @work(exclusive=True, thread=True)
     def trigger_engine_turn(self) -> None:
-        """Worker thread to run engine calculation without blocking UI thread."""
         log = self.query_one(Log)
         log.write_line("Stonkfish thinking...")
 
         if self.engine:
-            engine_move = self.engine.get_best_move(self.game.board, time_limit=0.5)
+            # Use the updated method to fetch both move and eval score
+            engine_move, eval_score = self.engine.get_best_move_and_eval(self.game.board, time_limit=0.5)
             played_san = self.game.make_engine_move(engine_move)
         else:
             log.write_line("Engine not configured.")
             return
 
-        # Update UI back on main thread
-        self.call_from_thread(self.on_engine_finished, played_san)
+        # Pass both SAN string and eval score back to UI thread
+        self.app.call_from_thread(self.on_engine_finished, played_san, eval_score)
 
-    def on_engine_finished(self, played_san: str) -> None:
-        """Executed on main loop after engine completes calculation."""
+    def on_engine_finished(self, played_san: str, eval_score: float) -> None:
         log = self.query_one(Log)
-        log.write_line(f"Stonkfish played: {played_san}")
+        log.write_line(f"Stonkfish played: {played_san} (Eval: {eval_score:+.2f})")
+        
+        # Update board, history, and the EvalMeter
         self.sync_board_and_history(played_san)
+        self.query_one(EvalMeter).update_eval(eval_score)
 
     def sync_board_and_history(self, san_move: str) -> None:
-        """Synchronize updated board state across widgets."""
         self.query_one(ChessBoardGrid).update_board(self.game.board)
         self.query_one(MoveHistory).add_move(san_move)
 
         if self.game.is_over():
             self.query_one(Log).write_line(f"Game Over! Result: {self.game.get_result()}")
+
+
+class StonkfishTUI(App):
+    """The complete Stonkfish Chess Textual TUI."""
+
+    TITLE = "Stonkfish Chess"
+    BINDINGS = [("q", "quit", "Quit")]
+
+    def on_mount(self) -> None:
+        """Show the Setup Screen modal immediately upon launching TUI."""
+        self.push_screen(SetupScreen(), self.on_setup_completed)
+
+    def on_setup_completed(self, setup_data: tuple[int, chess.Color] | None) -> None:
+        """Receives setup options and switches to the main game screen."""
+        if setup_data is None:
+            self.exit()
+            return
+
+        elo, player_color = setup_data
+        self.push_screen(GameScreen(elo=elo, player_color=player_color))

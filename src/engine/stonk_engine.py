@@ -63,7 +63,7 @@ class StonkEngine:
         self.current_elo = elo
 
 
-    def get_best_move(self, board: chess.Board, time_limit: float = 0.5) -> chess.Move:
+    def get_best_move_and_eval(self, board: chess.Board, time_limit: float = 0.5) -> tuple[chess.Move, float]:
         """Requests the optimal move from Stockfish for the given board position.
 
         Args:
@@ -76,14 +76,27 @@ class StonkEngine:
         Raises:
             RuntimeError: If the engine fails to produce a valid move.
         """
-        result = self.engine.play(board, chess.engine.Limit(time=time_limit))
+        result = self.engine.play(board, chess.engine.Limit(time=time_limit), info=chess.engine.INFO_SCORE)
         
         if result.move is None:
             raise RuntimeError("Engine failed to return a move.")
-            
+
+        score = result.info.get("score")
+        if score is not None:
+            centipawns = score.white().score(mate_score=10000)
+            eval_score = centipawns / 100.0
+        else:
+            eval_score = 0.0
+
         self.total_think_time += time_limit
-        return result.move
+        return result.move, eval_score
 
     def quit(self) -> None:
         """terminates the background Stockfish subprocess."""
         self.engine.quit()
+
+"""
+1. add quit on main.py
+2. fix evaluation bar always showing 0.0
+3. add elo and color selection options
+"""
