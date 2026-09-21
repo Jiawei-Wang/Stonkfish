@@ -30,3 +30,38 @@ def test_top_line_is_rank1_when_inverted():
 def test_piece_symbol_map_defaults():
     assert UNICODE_PIECES["k"] == "♚"
     assert UNICODE_PIECES["."] == "."
+
+
+def test_all_files_rendered_in_order_normal():
+    out = render_board(chess.Board())
+    # Rank 8 row: black pieces, files a..h left to right.
+    rank8 = out.splitlines()[1]
+    assert rank8.startswith("8 ")
+    assert rank8.endswith(" 8")
+    # The eight square cells appear in file order a..h.
+    assert "♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜" in rank8
+
+
+def test_inverted_reverses_file_order():
+    out = render_board(chess.Board(), invert=True)
+    # Viewed from Black's side, rank 1 is on top and files run h..a, so the
+    # king and queen swap columns compared to the normal orientation.
+    top = out.splitlines()[1]
+    assert top.startswith("1 ")
+    assert "♖ ♘ ♗ ♔ ♕ ♗ ♘ ♖" in top
+
+
+def test_empty_square_renders_as_dot():
+    board = chess.Board("8/8/8/8/8/8/8/8 w - - 0 1")
+    out = render_board(board)
+    # Every one of the 64 squares is empty.
+    assert out.count(".") >= 64
+
+
+def test_single_piece_position():
+    board = chess.Board("8/8/8/8/8/8/8/4K3 w - - 0 1")
+    out = render_board(board)
+    lines = out.splitlines()
+    # White king on e1 -> bottom row (rank 1), file e (5th cell).
+    assert "♔" in lines[8]
+    assert lines[8].split()[5] == "♔"

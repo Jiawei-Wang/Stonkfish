@@ -51,21 +51,44 @@ def test_configure_elo_does_not_raise():
 
 
 @_SKIP_NO_BINARY
-def test_get_best_move_returns_chess_move():
+def test_get_best_move_and_eval_returns_move_and_float():
     engine = StonkEngine()
     try:
-        move = engine.get_best_move(chess.Board(), time_limit=0.3)
+        move, eval_score = engine.get_best_move_and_eval(chess.Board(), time_limit=0.3)
         assert isinstance(move, chess.Move)
+        assert isinstance(eval_score, float)
     finally:
         engine.quit()
 
 
 @_SKIP_NO_BINARY
-def test_get_best_move_raises_when_no_legal_moves():
+def test_get_best_move_and_eval_raises_when_no_legal_moves():
     engine = StonkEngine()
     try:
         with pytest.raises(RuntimeError):
-            engine.get_best_move(chess.Board(_MATED), time_limit=0.3)
+            engine.get_best_move_and_eval(chess.Board(_MATED), time_limit=0.3)
+    finally:
+        engine.quit()
+
+
+@_SKIP_NO_BINARY
+def test_get_best_move_and_eval_accumulates_think_time():
+    engine = StonkEngine()
+    try:
+        assert engine.total_think_time == 0.0
+        engine.get_best_move_and_eval(chess.Board(), time_limit=0.3)
+        assert engine.total_think_time == pytest.approx(0.3)
+    finally:
+        engine.quit()
+
+
+@_SKIP_NO_BINARY
+def test_configure_elo_updates_current_elo():
+    engine = StonkEngine()
+    try:
+        assert engine.current_elo is None
+        engine.configure_elo(1500)
+        assert engine.current_elo == 1500
     finally:
         engine.quit()
 
