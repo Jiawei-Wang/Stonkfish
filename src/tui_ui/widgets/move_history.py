@@ -1,4 +1,4 @@
-"""move_history.py: Widget displaying the game's move log."""
+"""Widget displaying the game's move history."""
 
 from textual.widget import Widget
 from textual.widgets import DataTable
@@ -29,11 +29,12 @@ class MoveHistory(Widget):
         table = self.query_one(DataTable)
         row_count = table.row_count
 
-        # If odd number of moves, White just moved; if even, Black just moved
+        # Start a new row when there is none yet or the last row already has
+        # a Black move; otherwise fill in the Black cell of the last row.
         if table.row_count == 0 or len(table.get_row_at(row_count - 1)) == 3 and table.get_row_at(row_count - 1)[2] != "":
-            # Start new move pair
+            # Start a new move pair.
             move_num = row_count + 1
             table.add_row(str(move_num), san_move, "")
         else:
-            # Update the last row (index: row_count - 1) at column index 2 (or column key 'black')
+            # Update the last row (index row_count - 1) at the Black column.
             table.update_cell_at(Coordinate(row_count - 1, 2), san_move)

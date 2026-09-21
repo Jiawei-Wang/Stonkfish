@@ -1,4 +1,4 @@
-"""app.py: Full Textual Application with Setup Screen and Game View."""
+"""Full Textual application with a setup screen and game view."""
 
 from textual import work
 from textual.app import App, ComposeResult
@@ -236,7 +236,7 @@ class GameScreen(Screen):
         log.write_line("Stonkfish thinking...")
 
         if self.engine:
-            # Use the updated method to fetch both move and eval score
+            # Fetch both the move and the eval score in a single call.
             engine_move, eval_score = self.engine.get_best_move_and_eval(self.game.board, time_limit=0.5)
             played_san = self.game.make_engine_move(engine_move)
         else:
@@ -249,7 +249,7 @@ class GameScreen(Screen):
     def on_engine_finished(self, played_san: str, eval_score: float) -> None:
         log = self.query_one(Log)
         log.write_line(f"Stonkfish played: {played_san} (Eval: {eval_score:+.2f})")
-        
+
         # Update board, history, and the EvalMeter
         self.sync_board_and_history(played_san)
         self.query_one(EvalMeter).update_eval(eval_score)

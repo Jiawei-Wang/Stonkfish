@@ -17,9 +17,9 @@ from tui_ui.app import StonkfishTUI
 
 def select_mode() -> str:
     """Prompt the user to select a mode (CLI or TUI).
-    
+
     Returns:
-        str: '1' for CLI and '2' for TUI
+        str: '1' for CLI and '2' for TUI.
     """
     print("\n=== Welcome to Stonkfish Chess ===")
     print("1) Play in CLI Mode")
@@ -66,7 +66,8 @@ def setup_cli_game():
         except ValueError:
             print("Invalid number format.")
 
-    # Map the color choice to a chess.Color; anything but 'b' defaults to White.
+    # Map the color choice to a chess.Color; anything but 'b' defaults to
+    # White.
     side_choice = input("Play as White or Black? (w/b) [Default w]: ").strip().lower()
     player_color = chess.BLACK if side_choice == 'b' else chess.WHITE
 
@@ -88,7 +89,8 @@ def run_cli_mode():
 
     game = None
     player_color = None
-    # Tracks whether setup completed, so the final board is only shown for a real game.
+    # Tracks whether setup completed, so the final board is only shown for a
+    # real game.
     entered_game = False
     try:
         elo, player_color = setup_cli_game()
@@ -134,7 +136,8 @@ def run_tui_mode():
     app.run()
 
 
-def main():
+def main() -> None:
+    """Run the top-level loop, re-prompting for a mode after each game."""
     while True:
         try:
             mode = select_mode()

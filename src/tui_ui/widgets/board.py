@@ -1,4 +1,4 @@
-"""board.py: Interactive 8x8 Chess Board Grid Widget for Textual."""
+"""Interactive 8x8 chess board grid widget for Textual."""
 
 from textual.app import ComposeResult
 from textual.message import Message

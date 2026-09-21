@@ -1,4 +1,4 @@
-"""eval_meter.py: Widget to display evaluation score/bar."""
+"""Widget displaying the engine evaluation score."""
 
 from textual.widget import Widget
 from textual.widgets import Static
@@ -22,12 +22,12 @@ class EvalMeter(Widget):
 
     def update_eval(self, score: float | str) -> None:
         """Update the eval score."""
-        self.score = score  # Changing a reactive automatically triggers re-render!
+        self.score = score  # Assigning a reactive triggers a re-render.
 
     def render(self) -> str:
-        # Example render using self.score
+        # Render a string score verbatim, or a numeric score in pawns.
         if isinstance(self.score, str):
             return f"Eval: {self.score}"
-        
-        # Display formatted score (e.g., +1.50 or -0.30)
+
+        # Display a numeric score formatted as signed pawns (e.g. +1.50).
         return f"Eval: {self.score:+.2f}"

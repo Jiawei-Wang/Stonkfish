@@ -1,4 +1,4 @@
-"""input.py: Input bar widget for typing move SAN commands."""
+"""Input bar widget for typing SAN moves or commands."""
 
 from textual.app import ComposeResult
 from textual.message import Message

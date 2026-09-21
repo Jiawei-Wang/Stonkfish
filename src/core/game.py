@@ -54,5 +54,8 @@ class Game:
         return self.board.is_game_over()
 
     def get_result(self) -> str:
-        """Return the game result in standard notation (e.g. '1-0', '0-1', '1/2-1/2', '*')."""
+        """Return the game result in standard notation.
+
+        For example '1-0', '0-1', '1/2-1/2', or '*' for a running game.
+        """
         return self.board.result()

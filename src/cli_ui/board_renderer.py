@@ -7,7 +7,8 @@ the board can be shown from either player's perspective.
 
 import chess
 
-# Maps each piece symbol (uppercase = white, lowercase = black) to its Unicode glyph.
+# Maps each piece symbol (uppercase = white, lowercase = black) to its
+# Unicode glyph.
 UNICODE_PIECES = {
     'R': '♖', 'N': '♘', 'B': '♗', 'Q': '♕', 'K': '♔', 'P': '♙',
     'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚', 'p': '♟',
@@ -29,7 +30,8 @@ def render_board(board: chess.Board, invert: bool = False) -> str:
     lines = []
     lines.append("  a b c d e f g h")
 
-    # Inverting reverses both axes so the board is viewed from the opposite side.
+    # Inverting reverses both axes so the board is viewed from the opposite
+    # side.
     ranks = range(8) if invert else range(7, -1, -1)
     files = range(7, -1, -1) if invert else range(8)
 
