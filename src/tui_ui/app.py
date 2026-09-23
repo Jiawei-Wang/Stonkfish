@@ -100,8 +100,9 @@ class GameScreen(Screen):
     }
 
     #left_pane {
-        width: 36;
+        width: 44;
         height: 100%;
+        align: center top;
     }
 
     #right_pane {
@@ -110,9 +111,14 @@ class GameScreen(Screen):
     }
 
     #board_container {
-        height: 18;
-        width: 34;
+        height: auto;
+        width: auto;
         content-align: center middle;
+    }
+
+    #move_history {
+        height: 10;
+        border: solid blue;
     }
 
     #log {
