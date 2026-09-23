@@ -1,6 +1,7 @@
 """Tests for the Textual app screens (SetupScreen, GameScreen)."""
 
 import asyncio
+from typing import cast
 
 import chess
 import pytest
@@ -47,7 +48,7 @@ def test_setup_invalid_elo_not_dismissed():
         async with app.run_test(size=(100, 30)) as pilot:
             app.push_screen(SetupScreen())
             await pilot.pause()
-            scr = app.screen
+            scr = cast(SetupScreen, app.screen)
             scr.query_one("#elo_input", Input).value = "999"
             btn = scr.query_one("#btn_start", Button)
             scr.on_button_pressed(Button.Pressed(btn))
@@ -63,7 +64,7 @@ def test_setup_non_numeric_elo_not_dismissed():
         async with app.run_test(size=(100, 30)) as pilot:
             app.push_screen(SetupScreen())
             await pilot.pause()
-            scr = app.screen
+            scr = cast(SetupScreen, app.screen)
             scr.query_one("#elo_input", Input).value = "abc"
             btn = scr.query_one("#btn_start", Button)
             scr.on_button_pressed(Button.Pressed(btn))
@@ -79,7 +80,7 @@ def test_setup_below_range_not_dismissed():
         async with app.run_test(size=(100, 30)) as pilot:
             app.push_screen(SetupScreen())
             await pilot.pause()
-            scr = app.screen
+            scr = cast(SetupScreen, app.screen)
             scr.query_one("#elo_input", Input).value = "1000"
             btn = scr.query_one("#btn_start", Button)
             scr.on_button_pressed(Button.Pressed(btn))
@@ -96,7 +97,7 @@ def test_setup_valid_elo_dismisses_with_white():
         async with app.run_test(size=(100, 30)) as pilot:
             app.push_screen(SetupScreen(), results.append)
             await pilot.pause()
-            scr = app.screen
+            scr = cast(SetupScreen, app.screen)
             scr.query_one("#elo_input", Input).value = "1500"
             btn = scr.query_one("#btn_start", Button)
             scr.on_button_pressed(Button.Pressed(btn))
@@ -114,7 +115,7 @@ def test_setup_black_color():
         async with app.run_test(size=(100, 30)) as pilot:
             app.push_screen(SetupScreen(), results.append)
             await pilot.pause()
-            scr = app.screen
+            scr = cast(SetupScreen, app.screen)
             scr.query_one("#elo_input", Input).value = "1800"
             scr.query_one("#radio_black", RadioButton).value = True
             await pilot.pause()
@@ -134,7 +135,7 @@ def test_setup_quit_exits_app():
         async with app.run_test(size=(100, 30)) as pilot:
             app.push_screen(SetupScreen())
             await pilot.pause()
-            scr = app.screen
+            scr = cast(SetupScreen, app.screen)
             btn = scr.query_one("#btn_quit", Button)
             scr.on_button_pressed(Button.Pressed(btn))
             await pilot.pause()
@@ -152,7 +153,7 @@ def test_game_select_own_piece_highlights():
         async with app.run_test(size=(140, 45)) as pilot:
             app.push_screen(GameScreen(elo=1500, player_color=chess.WHITE))
             await pilot.pause()
-            gs = app.screen
+            gs = cast(GameScreen, app.screen)
             _sel(gs, chess.E2)
             await pilot.pause()
             assert gs.selected_square == chess.E2
@@ -166,7 +167,7 @@ def test_game_select_enemy_piece_not_selected():
         async with app.run_test(size=(140, 45)) as pilot:
             app.push_screen(GameScreen(elo=1500, player_color=chess.WHITE))
             await pilot.pause()
-            gs = app.screen
+            gs = cast(GameScreen, app.screen)
             _sel(gs, chess.E7)  # black pawn, white to move
             await pilot.pause()
             assert gs.selected_square is None
@@ -180,7 +181,7 @@ def test_game_legal_move_made():
         async with app.run_test(size=(140, 45)) as pilot:
             app.push_screen(GameScreen(elo=1500, player_color=chess.WHITE))
             await pilot.pause()
-            gs = app.screen
+            gs = cast(GameScreen, app.screen)
             _sel(gs, chess.E2)
             await pilot.pause()
             _sel(gs, chess.E4)
@@ -199,7 +200,7 @@ def test_game_illegal_move_ignored():
         async with app.run_test(size=(140, 45)) as pilot:
             app.push_screen(GameScreen(elo=1500, player_color=chess.WHITE))
             await pilot.pause()
-            gs = app.screen
+            gs = cast(GameScreen, app.screen)
             _sel(gs, chess.E2)
             await pilot.pause()
             _sel(gs, chess.D3)  # no capture target -> illegal
@@ -217,7 +218,7 @@ def test_game_legal_move_updates_history():
         async with app.run_test(size=(140, 45)) as pilot:
             app.push_screen(GameScreen(elo=1500, player_color=chess.WHITE))
             await pilot.pause()
-            gs = app.screen
+            gs = cast(GameScreen, app.screen)
             _sel(gs, chess.E2)
             await pilot.pause()
             _sel(gs, chess.E4)
@@ -234,7 +235,7 @@ def test_game_promotion_becomes_queen():
         async with app.run_test(size=(140, 45)) as pilot:
             app.push_screen(GameScreen(elo=1500, player_color=chess.WHITE))
             await pilot.pause()
-            gs = app.screen
+            gs = cast(GameScreen, app.screen)
             gs.game.board = chess.Board("4k3/P7/8/8/8/8/8/4K3 w - - 0 1")
             _sel(gs, chess.A7)
             await pilot.pause()
@@ -253,7 +254,7 @@ def test_game_on_engine_finished_updates_eval_and_history():
         async with app.run_test(size=(140, 45)) as pilot:
             app.push_screen(GameScreen(elo=1500, player_color=chess.WHITE))
             await pilot.pause()
-            gs = app.screen
+            gs = cast(GameScreen, app.screen)
             gs.on_engine_finished("e5", 0.5)
             await pilot.pause()
             assert gs.query_one(EvalMeter).score == 0.5

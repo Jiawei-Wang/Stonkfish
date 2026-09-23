@@ -1,10 +1,12 @@
 """Tests for the Textual chess board widgets (ChessSquare, ChessBoardGrid)."""
 
 import asyncio
+from typing import cast
 
 import chess
 
 from textual.app import App, ComposeResult
+from textual.content import Content
 
 from tui_ui.widgets.board import ChessBoardGrid, ChessSquare
 
@@ -29,17 +31,17 @@ def test_square_b1_is_light():
 
 
 def test_square_default_renders_blank():
-    assert ChessSquare(square_index=chess.E4).render().plain == " "
+    assert cast(Content, ChessSquare(square_index=chess.E4).render()).plain == " "
 
 
 def test_square_set_piece_updates_glyph():
     sq = ChessSquare(square_index=chess.E2)
     sq.set_piece("P")
-    assert sq.render().plain == "♙"
+    assert cast(Content, sq.render()).plain == "♙"
     sq.set_piece("p")
-    assert sq.render().plain == "♟"
+    assert cast(Content, sq.render()).plain == "♟"
     sq.set_piece(".")
-    assert sq.render().plain == " "
+    assert cast(Content, sq.render()).plain == " "
 
 
 def test_square_set_state_selected():
@@ -86,12 +88,12 @@ def test_grid_compose_yields_64_squares():
 
 
 def test_grid_compose_normal_first_is_a8():
-    first = list(ChessBoardGrid().compose())[0]
+    first = cast(ChessSquare, list(ChessBoardGrid().compose())[0])
     assert first.square_index == chess.A8
 
 
 def test_grid_compose_invert_first_is_h1():
-    first = list(ChessBoardGrid(invert=True).compose())[0]
+    first = cast(ChessSquare, list(ChessBoardGrid(invert=True).compose())[0])
     assert first.square_index == chess.H1
 
 
@@ -161,7 +163,7 @@ class _BoardApp(App):
         super().__init__()
         self.invert = invert
         self.cancelled = 0
-        self.selected: list[chess.square] = []
+        self.selected: list[chess.Square] = []
 
     def compose(self) -> ComposeResult:
         yield ChessBoardGrid(invert=self.invert, id="board")
@@ -180,9 +182,9 @@ def test_grid_update_board_syncs_pieces():
             grid = app.query_one(ChessBoardGrid)
             grid.update_board(chess.Board())
             e2 = next(sq for sq in grid.query(ChessSquare) if sq.square_index == chess.E2)
-            assert e2.render().plain == "♙"
+            assert cast(Content, e2.render()).plain == "♙"
             e5 = next(sq for sq in grid.query(ChessSquare) if sq.square_index == chess.E5)
-            assert e5.render().plain == " "
+            assert cast(Content, e5.render()).plain == " "
 
     _run_async(_run())
 
