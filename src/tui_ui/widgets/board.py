@@ -19,7 +19,7 @@ class ChessSquare(Static):
 
     DEFAULT_CSS = """
     ChessSquare {
-        width: 4;
+        width: 5;
         height: 2;
         content-align: center middle;
         text-style: bold;
@@ -33,11 +33,11 @@ class ChessSquare(Static):
         color: #111111;
     }
     ChessSquare.selected {
-        background: #769656;  /* Highlight color for clicked square */
+        background: #769656;
         color: #ffffff;
     }
     ChessSquare.last-move {
-        background: #baca44;  /* Highlight for last move made */
+        background: #baca44;
     }
     """
 
@@ -74,8 +74,8 @@ class ChessBoardGrid(Widget):
     ChessBoardGrid {
         layout: grid;
         grid-size: 8 8;
-        width: 32;
-        height: 16;
+        width: 42;
+        height: 18;
         border: solid green;
     }
     """
