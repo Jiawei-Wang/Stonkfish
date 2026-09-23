@@ -82,7 +82,6 @@ class SetupScreen(ModalScreen):
             is_white = self.query_one("#radio_white", RadioButton).value
             player_color = chess.WHITE if is_white else chess.BLACK
 
-            # Pass choices back to the app controller
             self.dismiss((elo, player_color))
 
 
@@ -170,12 +169,12 @@ class GameScreen(Screen):
         yield Footer()
 
     async def on_mount(self) -> None:
-        """Initialize engine and sync board state."""
+        """Initialize engine, sync board state, and set focus to the board."""
         log = self.query_one(Log)
         try:
             self.engine = StonkEngine()
             self.engine.configure_elo(self.elo)
-            log.write_line(f"StonkEngine ready (Elo: {self.elo}). Playing as {'White' if self.player_color == chess.WHITE else 'Black'}.")
+            log.write_line(f"Stonkfish ready (Elo: {self.elo}). Playing as {'White' if self.player_color == chess.WHITE else 'Black'}.")
         except FileNotFoundError as e:
             log.write_line(f"Engine setup failed: {e}")
 
@@ -183,11 +182,18 @@ class GameScreen(Screen):
         board_widget = self.query_one(ChessBoardGrid)
         board_widget.update_board(self.game.board)
 
-        # If user picked Black, engine makes the first move
+        # Focus the chessboard grid immediately for keyboard control
+        board_widget.focus()
+
         if self.player_color == chess.BLACK:
             self.trigger_engine_turn()
 
     # --- INPUT HANDLERS ---
+
+    def on_chess_board_grid_selection_cancelled(self, message: ChessBoardGrid.SelectionCancelled) -> None:
+        """Handle ESC key press to clear square selection."""
+        self.selected_square = None
+        self.query_one(ChessBoardGrid).highlight_square(None)
 
     def on_move_input_bar_move_submitted(self, message: MoveInputBar.MoveSubmitted) -> None:
         san = message.command
@@ -242,21 +248,18 @@ class GameScreen(Screen):
         log.write_line("Stonkfish thinking...")
 
         if self.engine:
-            # Fetch both the move and the eval score in a single call.
             engine_move, eval_score = self.engine.get_best_move_and_eval(self.game.board, time_limit=0.5)
             played_san = self.game.make_engine_move(engine_move)
         else:
             log.write_line("Engine not configured.")
             return
 
-        # Pass both SAN string and eval score back to UI thread
         self.app.call_from_thread(self.on_engine_finished, played_san, eval_score)
 
     def on_engine_finished(self, played_san: str, eval_score: float) -> None:
         log = self.query_one(Log)
         log.write_line(f"Stonkfish played: {played_san} (Eval: {eval_score:+.2f})")
 
-        # Update board, history, and the EvalMeter
         self.sync_board_and_history(played_san)
         self.query_one(EvalMeter).update_eval(eval_score)
 
@@ -275,11 +278,9 @@ class StonkfishTUI(App):
     BINDINGS = [("q", "quit", "Quit")]
 
     def on_mount(self) -> None:
-        """Show the Setup Screen modal immediately upon launching TUI."""
         self.push_screen(SetupScreen(), self.on_setup_completed)
 
     def on_setup_completed(self, setup_data: tuple[int, chess.Color] | None) -> None:
-        """Receives setup options and switches to the main game screen."""
         if setup_data is None:
             self.exit()
             return
