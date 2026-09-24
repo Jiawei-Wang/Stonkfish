@@ -27,8 +27,11 @@ def render_board(board: chess.Board, invert: bool = False) -> str:
     Returns:
         str: The board as a multi-line string with coordinate labels.
     """
+
+
+
     lines = []
-    lines.append("  a b c d e f g h")
+    lines.append("  a b c d e f g h") if not invert else lines.append("  h g f e d c b a")  # Flip orientation for Black's perspective
 
     # Inverting reverses both axes so the board is viewed from the opposite
     # side.
@@ -45,5 +48,5 @@ def render_board(board: chess.Board, invert: bool = False) -> str:
         row_str += f"{rank + 1}"
         lines.append(row_str)
 
-    lines.append("  a b c d e f g h")
+    lines.append("  a b c d e f g h") if not invert else lines.append("  h g f e d c b a")  # Flip orientation for Black's perspective
     return "\n".join(lines)
